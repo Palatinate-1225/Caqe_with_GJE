@@ -20,7 +20,7 @@ QBFResult QBFSolver::solve(std::vector<Formula>& prefix, std::vector<std::vector
     }
     std::cout << ++max_ID << std::endl;
 
-    return Q_SAT;
+    // return Q_SAT;
     return solve_recursive(prefix, 0, matrix, top, ++max_ID);
 }
 
