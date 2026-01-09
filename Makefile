@@ -1,0 +1,33 @@
+# 定義編譯器
+CXX = g++
+# 定義編譯參數 (-g 方便除錯, -O3 提高效能)
+CXXFLAGS = -std=c++11 -Wall -O3
+
+# 定義目標執行檔名稱
+TARGET = qbf_solver
+
+# 定義所有的目標檔 (.o)
+OBJS = main.o qbf.o sat.o
+
+# 預設動作：編譯執行檔
+all: $(TARGET)
+
+# 連結所有目標檔來產生執行檔
+$(TARGET): $(OBJS)
+	$(CXX) $(CXXFLAGS) $(OBJS) -o $(TARGET)
+
+# 編譯 main.o
+main.o: main.cpp qbf.h
+	$(CXX) $(CXXFLAGS) -c main.cpp
+
+# 編譯 QBFSolver.o
+qbf.o: qbf.cpp qbf.h sat.h
+	$(CXX) $(CXXFLAGS) -c qbf.cpp
+
+# 編譯 SATSolver.o
+sat.o: sat.cpp sat.h
+	$(CXX) $(CXXFLAGS) -c sat.cpp
+
+# 清除編譯產生的檔案
+clean:
+	rm -f $(OBJS) $(TARGET)
