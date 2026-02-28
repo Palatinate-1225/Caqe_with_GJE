@@ -1,33 +1,30 @@
-# 定義編譯器
+# 指向 src 目錄
+CMS_INCLUDE_DIR = /cryptominisat/src
+
+# 確保編譯參數包含這個路徑
+CXXFLAGS += -I$(CMS_INCLUDE_DIR)
+# --- 編譯參數 ---
 CXX = g++
-# 定義編譯參數 (-g 方便除錯, -O3 提高效能)
-CXXFLAGS = -std=c++11 -Wall -O3
+# 記得要 c++17，因為你的 qbf.cpp 有用到結構化綁定
+CXXFLAGS = -std=c++17 -Wall -O3
 
-# 定義目標執行檔名稱
+# 在 CXXFLAGS 中加入 -I (Include) 參數
+CXXFLAGS += -I$(CMS_INCLUDE_DIR)
+
+# 在 LDFLAGS 中加入 -L (Library Path) 與 -l (Library Name)
+LDFLAGS = -L$(CMS_LIB_DIR) -lcryptominisat5 -lz
+
+# --- 目標與規則 ---
 TARGET = qbf_solver
-
-# 定義所有的目標檔 (.o)
 OBJS = main.o qbf.o sat.o
 
-# 預設動作：編譯執行檔
 all: $(TARGET)
 
-# 連結所有目標檔來產生執行檔
 $(TARGET): $(OBJS)
-	$(CXX) $(CXXFLAGS) $(OBJS) -o $(TARGET)
+	$(CXX) $(CXXFLAGS) $(OBJS) -o $(TARGET) $(LDFLAGS)
 
-# 編譯 main.o
-main.o: main.cpp qbf.h
-	$(CXX) $(CXXFLAGS) -c main.cpp
-
-# 編譯 QBFSolver.o
-qbf.o: qbf.cpp qbf.h sat.h
-	$(CXX) $(CXXFLAGS) -c qbf.cpp
-
-# 編譯 SATSolver.o
+# 編譯 sat.o 時，編譯器會根據 CXXFLAGS 中的 -I 路徑去找 cryptominisat.h
 sat.o: sat.cpp sat.h
 	$(CXX) $(CXXFLAGS) -c sat.cpp
 
-# 清除編譯產生的檔案
-clean:
-	rm -f $(OBJS) $(TARGET)
+# ... 其餘規則保持不變 ...

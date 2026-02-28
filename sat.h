@@ -1,31 +1,29 @@
-#ifndef SATSOLVER_H
-#define SATSOLVER_H
+#ifndef SAT_H
+#define SAT_H
 
 #include <vector>
 #include <map>
-#include <set>
+#include <cryptominisat.h>
 
-enum SATResult { S_SAT, S_UNSAT };
+enum SATResult { S_SAT, S_UNSAT, S_UNKNOWN };
 
 class SATSolver {
 public:
-    // 加入子句到當前的 SAT 問題中
+    SATSolver();
+    ~SATSolver();
+
+    // 依照你原本的呼叫方式：addClause(std::vector<int>)
     void addClause(const std::vector<int>& clause);
 
-    // 求解並回傳 assignment，vars_of_interest 指定需要賦值的變數
+    // 依照你原本的呼叫方式：solve(map, vector<int>)
     SATResult solve(std::map<int, bool>& assignment, const std::vector<int>& vars_of_interest);
 
-    // 清空目前的子句集，準備下一次求解
-    void reset();
+    // 為了相容你 code 中的 sat.clauses.empty() 判斷
+    std::vector<std::vector<int>> clauses; 
 
 private:
-    std::vector<std::vector<int>> clauses;
-    
-    // 內部遞迴求解函數
-    bool backtrack(std::map<int, bool>& current_assignment, std::vector<int> target_vars, int index);
-    
-    // 檢查當前賦值是否違反任何子句
-    bool is_consistent(const std::map<int, bool>& assignment);
+    CMSat::SATSolver solver;
+    void ensure_vars(int max_var_id);
 };
 
 #endif

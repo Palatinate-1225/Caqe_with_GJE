@@ -2,72 +2,53 @@
 #include <cmath>
 #include <algorithm>
 
-void SATSolver::addClause(const std::vector<int>& clause) {
-    clauses.push_back(clause);
+SATSolver::SATSolver() {
+    // 可以在這裡設定 CMS 參數，例如執行緒數量
+    solver.set_num_threads(1); 
 }
 
-void SATSolver::reset() {
-    clauses.clear();
+SATSolver::~SATSolver() {}
+
+void SATSolver::ensure_vars(int max_var_id) {
+    // CMS 需要手動增加變數數量
+    while (max_var_id >= (int)solver.nVars()) {
+        solver.new_var();
+    }
+}
+
+void SATSolver::addClause(const std::vector<int>& clause) {
+    // 同步更新你原本代碼中檢查用的 clauses vector
+    clauses.push_back(clause);
+
+    std::vector<CMSat::Lit> cms_lits;
+    for (int lit : clause) {
+        int var = std::abs(lit) - 1; // 轉為 0-indexed
+        ensure_vars(var);
+        // CMSat::Lit(變數編號, 是否為負)
+        cms_lits.push_back(CMSat::Lit(var, lit < 0));
+    }
+    solver.add_clause(cms_lits);
 }
 
 SATResult SATSolver::solve(std::map<int, bool>& assignment, const std::vector<int>& vars_of_interest) {
-    assignment.clear();
-    // 開始遞迴搜尋
-    if (backtrack(assignment, vars_of_interest, 0)) {
-        return S_SAT;
-    }
-    return S_UNSAT;
-}
+    CMSat::lbool res = solver.solve();
 
-bool SATSolver::backtrack(std::map<int, bool>& current_assignment, std::vector<int> target_vars, int index) {
-    // 基底情況：所有感興趣的變數都已賦值
-    if (index == target_vars.size()) {
-        return is_consistent(current_assignment);
-    }
-
-    int var = target_vars[index];
-
-    // 嘗試 False
-    current_assignment[var] = false;
-    if (is_consistent(current_assignment)) {
-        if (backtrack(current_assignment, target_vars, index + 1)) return true;
-    }
-
-    // 嘗試 True
-    current_assignment[var] = true;
-    if (is_consistent(current_assignment)) {
-        if (backtrack(current_assignment, target_vars, index + 1)) return true;
-    }
-
-    // 找不到解，回溯
-    current_assignment.erase(var);
-    return false;
-}
-
-bool SATSolver::is_consistent(const std::map<int, bool>& assignment) {
-    for (const auto& clause : clauses) {
-        bool clause_satisfied = false;
-        bool has_unassigned = false;
-
-        for (int lit : clause) {
-            int var = std::abs(lit);
-            bool is_pos = (lit > 0);
-
-            if (assignment.count(var)) {
-                if (assignment.at(var) == is_pos) {
-                    clause_satisfied = true;
-                    break;
-                }
+    if (res == CMSat::l_True) {
+        assignment.clear();
+        const std::vector<CMSat::lbool> model = solver.get_model();
+        
+        for (int v : vars_of_interest) {
+            int var_idx = std::abs(v) - 1;
+            if (var_idx < (int)model.size()) {
+                // 如果 CMS 返回 l_True 代表真，l_False 代表假
+                assignment[v] = (model[var_idx] == CMSat::l_True);
             } else {
-                has_unassigned = true;
-                break; // to accelerate
+                assignment[v] = false; // 沒出現過的變數預設給 false
             }
         }
-
-        // 如果子句中所有文字都已賦值且都不滿足，則此賦值無效
-        if (!clause_satisfied && !has_unassigned) {
-            return false;
-        }
+        return S_SAT;
+    } else if (res == CMSat::l_False) {
+        return S_UNSAT;
     }
-    return true;
+    return S_UNKNOWN;
 }

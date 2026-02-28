@@ -16,9 +16,10 @@ public:
     QBFResult solve(std::vector<Formula>& prefix, std::vector<std::vector<int>> matrix);
 
 private:
-    QBFResult solve_recursive(const std::vector<Formula>& prefix, int depth, std::vector<std::vector<int>> matrix, std::vector<bool> top, int next_var);
-    std::vector<std::vector<int>> simplify(const std::vector<std::vector<int>>& matrix, std::map<int, bool>& b);
-    std::vector<int> generateRefinementClause(std::map<int, bool>& b, const std::vector<int>& vars);
+    QBFResult solve_recursive(const std::vector<Formula>& prefix, int depth, std::vector<std::vector<int>> matrix, int next_var);
+    std::vector<std::vector<int>> simplify(const std::vector<std::vector<int>>& matrix, const Formula& currentQ, std::vector<bool> next_top);
+    std::vector<int> generateRefinementClauseE(std::map<int, bool>& b, const std::vector<int>& vars);
+    std::vector<int> generateRefinementClauseA(std::map<int, bool>& b, const std::vector<int>& vars);
 };
 
 #endif

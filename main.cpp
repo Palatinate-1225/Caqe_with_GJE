@@ -8,10 +8,9 @@ int main() {
     // 範例：forall x1, exists x2 . (x1 != x2)
     std::vector<QBFSolver::Formula> prefix = {
         {'a', {1}}, 
-        {'e', {2, 3, 5}}
+        {'e', {2, 3}}
     };
-    std::vector<std::vector<int>> matrix = { {1, 2}, {2, 4, -5} };
-
+    std::vector<std::vector<int>> matrix = { {1, 2}};
 
 
     QBFResult res = solver.solve(prefix, matrix);
@@ -19,6 +18,8 @@ int main() {
 
     return 0;
 }
+
+// SAT solver test
 
 // #include "sat.h"
 // #include <iostream>
